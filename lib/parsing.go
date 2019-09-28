@@ -22,16 +22,16 @@ type Game struct {
 
 // WriteIcalEvent writes an iCalendar event for a game into w.
 func (g *Game) WriteIcalEvent(w io.Writer) {
-	startTime := g.StartTime.Format(time.RFC3339)
-	endTime := (g.StartTime.Add(g.Duration)).Format(time.RFC3339)
-	fmt.Fprintf(w, "BEGIN:VEVENT\n")
-	fmt.Fprintf(w, "UID:%d@gamesdonequick.com\n", g.uid())
-	fmt.Fprintf(w, "DTSTAMP:%s\n", startTime)
-	fmt.Fprintf(w, "DTSTART:%s\n", startTime)
-	fmt.Fprintf(w, "DTEND:%s\n", endTime)
-	fmt.Fprintf(w, "SUMMARY:%s\n", g.Game)
-	fmt.Fprintf(w, "DESCRIPTION:%s by %s; host:%s\n", g.Category, g.Runners, g.Host)
-	fmt.Fprintf(w, "END:VEVENT\n")
+	startTime := g.StartTime.Format("20060102T150405Z07:00")
+	endTime := (g.StartTime.Add(g.Duration)).Format("20060102T150405Z07:00")
+	fmt.Fprintf(w, "BEGIN:VEVENT\r\n")
+	fmt.Fprintf(w, "UID:%d@gamesdonequick.com\r\n", g.uid())
+	fmt.Fprintf(w, "DTSTAMP:%s\r\n", startTime)
+	fmt.Fprintf(w, "DTSTART:%s\r\n", startTime)
+	fmt.Fprintf(w, "DTEND:%s\r\n", endTime)
+	fmt.Fprintf(w, "SUMMARY:%s\r\n", g.Game)
+	fmt.Fprintf(w, "DESCRIPTION:%s by %s; host:%s\r\n", g.Category, g.Runners, g.Host)
+	fmt.Fprintf(w, "END:VEVENT\r\n")
 }
 
 func (g *Game) uid() uint32 {
