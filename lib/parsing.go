@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 	"hash/crc32"
+	"strings"
 )
 
 // Game represents a GDQ schedule block.
@@ -30,7 +31,7 @@ func (g *Game) WriteIcalEvent(w io.Writer) {
 	fmt.Fprintf(w, "DTSTART:%s\r\n", startTime)
 	fmt.Fprintf(w, "DTEND:%s\r\n", endTime)
 	fmt.Fprintf(w, "SUMMARY:%s\r\n", g.Game)
-	fmt.Fprintf(w, "DESCRIPTION:%s by %s; host:%s\r\n", g.Category, g.Runners, g.Host)
+	fmt.Fprintf(w, "DESCRIPTION:%s by %s\\nHosted by %s\r\n", g.Category, g.Runners, strings.TrimSpace(g.Host))
 	fmt.Fprintf(w, "END:VEVENT\r\n")
 }
 
