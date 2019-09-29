@@ -22,7 +22,6 @@ func main() {
 	})
 
 	http.HandleFunc("/out.ics", func(w http.ResponseWriter, r *http.Request) {
-		go lib.LogRequest(r.RemoteAddr)
 		w.Header().Add("Content-Type", "text/calendar")
 		w.WriteHeader(200)
 		lib.GenerateCalendar(w, "https://gamesdonequick.com/schedule/27") // GDQx 2019
