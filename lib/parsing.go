@@ -2,13 +2,13 @@ package lib
 
 import (
 	"fmt"
-	"io"
 	"golang.org/x/net/html"
+	"hash/crc32"
+	"io"
 	"regexp"
 	"strconv"
-	"time"
-	"hash/crc32"
 	"strings"
+	"time"
 )
 
 // Game represents a GDQ schedule block.
@@ -56,9 +56,12 @@ func ParseGame(z *html.Tokenizer) (*Game, error) {
 	z.Next() // </td>
 	z.Next() // text: newline
 	z.Next() // <td>
-	z.Next() // text: runners
-	runners := string(z.Text())
-	z.Next() // </td>
+	runners := ""
+	if z.Next() == html.TextToken {
+		// so apparently there are runs without runners, i.e. Ninja Spirit @ SGDQ2019
+		runners = string(z.Text())
+		z.Next() // </td>
+	}
 	z.Next() // text: newline
 	z.Next() // <td>
 	z.Next() // text: space
