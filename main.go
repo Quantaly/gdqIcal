@@ -22,6 +22,7 @@ func main() {
 		w.Header().Add("Content-Type", "text/calendar")
 		w.WriteHeader(200)
 		lib.GenerateCalendar(w, scheduleURL)
+		go lib.LogRequest(r.Header.Get("X-Forwarded-For"), "out.ics")
 	})
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil))
