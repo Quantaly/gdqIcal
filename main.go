@@ -5,10 +5,16 @@ import (
 	"log"
 	"net/http"
 	"os"
+
 	"github.com/Quantaly/gdqIcal/lib"
 )
 
 func main() {
+	port, present := os.LookupEnv("PORT")
+	if !present {
+		log.Fatal("PORT environment variable not set")
+	}
+
 	log.Println("Preparing to serve")
 
 	scheduleURL, present := os.LookupEnv("SCHEDULE_URL")
@@ -24,6 +30,5 @@ func main() {
 		lib.GenerateCalendar(w, scheduleURL)
 		go lib.LogRequest(r.Header.Get("X-Forwarded-For"), "out.ics")
 	})
-
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
