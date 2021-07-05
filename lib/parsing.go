@@ -2,13 +2,14 @@ package lib
 
 import (
 	"fmt"
-	"golang.org/x/net/html"
 	"hash/crc32"
 	"io"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/html"
 )
 
 // Game represents a GDQ schedule block.
@@ -57,18 +58,27 @@ func ParseGame(z *html.Tokenizer) (*Game, error) {
 	z.Next() // text: newline
 	z.Next() // <td>
 	runners := ""
-	if z.Next() == html.TextToken {
+	if z.Next() == html.TextToken { // </td> or text: runners
 		// so apparently there are runs without runners, i.e. Ninja Spirit @ SGDQ2019
 		runners = string(z.Text())
 		z.Next() // </td>
 	}
-	z.Next() // text: newline
-	z.Next() // <td>
-	z.Next() // text: space
-	z.Next() // <i.fa.fa-clock-o.text-gdq-red>
-	z.Next() // </i>
-	z.Next() // text: setup length
-	z.Next() // </td>
+	z.Next()                          // text: newline
+	z.Next()                          // <td>
+	if z.Next() != html.EndTagToken { // </td> or text: space
+		// some runs also don't have setup times, i.e. Daily Recap - Monday @ SGDQ2021
+		// one of these days I'm going to rewrite this POS with an actual DOM library
+		z.Next() // <i.fa.fa-clock-o.text-gdq-red>
+		z.Next() // </i>
+		z.Next() // text: setup length
+		z.Next() // </td>
+	}
+	// z.Next() // text: space
+	// z.Next() // <i.fa.fa-clock-o.text-gdq-red>
+	// z.Next() // </i>
+	// z.Next() // text: setup length
+
+	//z.Next() // </td>
 	z.Next() // text: newline
 	z.Next() // </tr>
 	z.Next() // text: newline
@@ -91,7 +101,7 @@ func ParseGame(z *html.Tokenizer) (*Game, error) {
 	z.Next() // </td>
 	z.Next() // text: newline
 	z.Next() // <td>
-	z.Next() // <i>
+	z.Next() // <i.fa.fa-microphone>
 	z.Next() // </i>
 	z.Next() // text: host
 	host := string(z.Text())
@@ -104,12 +114,13 @@ func ParseGame(z *html.Tokenizer) (*Game, error) {
 	return &Game{startTime, game, runners, duration, category, host}, nil
 }
 
+// ignore this being unused, it's for testing obvs
 func debugNextToken(z *html.Tokenizer) {
 	fmt.Println(z.Next())
 	fmt.Println(string(z.Raw()))
 }
 
-var gdqDurationRegex = regexp.MustCompile("(\\d+):(\\d+):(\\d+)")
+var gdqDurationRegex = regexp.MustCompile(`(\d+):(\d+):(\d+)`)
 
 func parseGdqDuration(s string) (time.Duration, error) {
 	matches := gdqDurationRegex.FindStringSubmatch(s)
