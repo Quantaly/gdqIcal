@@ -10,6 +10,11 @@ import (
 )
 
 func main() {
+	_, present := os.LookupEnv("DYNO") // detect running on Heroku
+	if present {
+		log.SetFlags(0)
+	}
+
 	port, present := os.LookupEnv("PORT")
 	if !present {
 		log.Fatal("PORT environment variable not set")

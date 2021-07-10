@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -42,82 +43,87 @@ func (g *Game) uid() uint32 {
 
 // ParseGame parses a game my dudes
 func ParseGame(z *html.Tokenizer) (*Game, error) {
-	z.Next() // text: newline
-	z.Next() // <td.start-time.text-right>
-	z.Next() // text: start time
+	nextToken(z) // text: newline
+	nextToken(z) // <td.start-time.text-right>
+	nextToken(z) // text: start time
 	startTime, err := time.Parse(time.RFC3339, string(z.Text()))
 	if err != nil {
 		return nil, err
 	}
-	z.Next() // </td>
-	z.Next() // text: newline
-	z.Next() // <td>
-	z.Next() // text: game
+	nextToken(z) // </td>
+	nextToken(z) // text: newline
+	nextToken(z) // <td>
+	nextToken(z) // text: game
 	game := string(z.Text())
-	z.Next() // </td>
-	z.Next() // text: newline
-	z.Next() // <td>
+	nextToken(z) // </td>
+	nextToken(z) // text: newline
+	nextToken(z) // <td>
 	runners := ""
-	if z.Next() == html.TextToken { // </td> or text: runners
+	if nextToken(z) == html.TextToken { // </td> or text: runners
 		// so apparently there are runs without runners, i.e. Ninja Spirit @ SGDQ2019
 		runners = string(z.Text())
-		z.Next() // </td>
+		nextToken(z) // </td>
 	}
-	z.Next()                          // text: newline
-	z.Next()                          // <td>
-	if z.Next() != html.EndTagToken { // </td> or text: space
+	nextToken(z)                          // text: newline
+	nextToken(z)                          // <td>
+	if nextToken(z) != html.EndTagToken { // </td> or text: space
 		// some runs also don't have setup times, i.e. Daily Recap - Monday @ SGDQ2021
 		// one of these days I'm going to rewrite this POS with an actual DOM library
-		z.Next() // <i.fa.fa-clock-o.text-gdq-red>
-		z.Next() // </i>
-		z.Next() // text: setup length
-		z.Next() // </td>
+		nextToken(z) // <i.fa.fa-clock-o.text-gdq-red>
+		nextToken(z) // </i>
+		nextToken(z) // text: setup length
+		nextToken(z) // </td>
 	}
-	// z.Next() // text: space
-	// z.Next() // <i.fa.fa-clock-o.text-gdq-red>
-	// z.Next() // </i>
-	// z.Next() // text: setup length
+	// nextToken(z) // text: space
+	// nextToken(z) // <i.fa.fa-clock-o.text-gdq-red>
+	// nextToken(z) // </i>
+	// nextToken(z) // text: setup length
 
-	//z.Next() // </td>
-	z.Next() // text: newline
-	z.Next() // </tr>
-	z.Next() // text: newline
-	z.Next() // <tr.second-row>
-	z.Next() // text: newline
-	z.Next() // <td.text-right>
-	z.Next() // text: space
-	z.Next() // <i.fa.fa-clock-o>
-	z.Next() // </i>
-	z.Next() // text: duration
+	//nextToken(z) // </td>
+	nextToken(z) // text: newline
+	nextToken(z) // </tr>
+	nextToken(z) // text: newline
+	nextToken(z) // <tr.second-row>
+	nextToken(z) // text: newline
+	nextToken(z) // <td.text-right>
+	nextToken(z) // text: space
+	nextToken(z) // <i.fa.fa-clock-o>
+	nextToken(z) // </i>
+	nextToken(z) // text: duration
 	duration, err := parseGdqDuration(string(z.Text()))
 	if err != nil {
 		return nil, err
 	}
-	z.Next() // </td>
-	z.Next() // text: newline
-	z.Next() // <td>
-	z.Next() // text: category
+	nextToken(z) // </td>
+	nextToken(z) // text: newline
+	nextToken(z) // <td>
+	nextToken(z) // text: category
 	category := string(z.Text())
-	z.Next() // </td>
-	z.Next() // text: newline
-	z.Next() // <td>
-	z.Next() // <i.fa.fa-microphone>
-	z.Next() // </i>
-	z.Next() // text: host
+	nextToken(z) // </td>
+	nextToken(z) // text: newline
+	nextToken(z) // <td>
+	nextToken(z) // <i.fa.fa-microphone>
+	nextToken(z) // </i>
+	nextToken(z) // text: host
 	host := string(z.Text())
-	z.Next() // </td>
-	z.Next() // text: newline
-	z.Next() // </tr>
-	z.Next() // text: newline
+	nextToken(z) // </td>
+	nextToken(z) // text: newline
+	nextToken(z) // </tr>
+	nextToken(z) // text: newline
 	// next token is <tr> or </tbody>
 
 	return &Game{startTime, game, runners, duration, category, host}, nil
 }
 
-// ignore this being unused, it's for testing obvs
-func debugNextToken(z *html.Tokenizer) {
-	fmt.Println(z.Next())
-	fmt.Println(string(z.Raw()))
+// advance to the next token, and print it if debugging
+func nextToken(z *html.Tokenizer) html.TokenType {
+	const DEBUGGING = false
+	ret := z.Next()
+	if DEBUGGING {
+		log.Println(ret)
+		log.Println(string(z.Raw()))
+	}
+	return ret
 }
 
 var gdqDurationRegex = regexp.MustCompile(`(\d+):(\d+):(\d+)`)
