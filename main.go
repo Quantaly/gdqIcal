@@ -35,5 +35,13 @@ func main() {
 		lib.GenerateCalendar(w, scheduleURL)
 		go lib.LogRequest(r.Header.Get("X-Forwarded-For"), "out.ics")
 	})
+
+	http.HandleFunc("/yeet", func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte("yeet\n"))
+		if err != nil {
+			log.Println("failed to yeet: ", err)
+		}
+	})
+
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
