@@ -77,20 +77,12 @@ func ParseGame(firstRow *html.Node) (*Game, error) {
 			duration = time.Duration(30) * time.Minute
 		}
 	}
-	// duration, err := parseGdqDuration(td.LastChild.PrevSibling.Data)
-	// if err != nil {
-	// 	setupTd := firstRow.LastChild.PrevSibling
-	// 	duration, err = parseGdqDuration(setupTd.LastChild.Data)
-	// 	if err != nil {
-	// 		duration = time.Duration(30) * time.Minute
-	// 	}
-	// }
 
 	td = nextElement(td)
 	category := td.FirstChild.Data
 
 	td = nextElement(td)
-	host := td.FirstChild.Data
+	host := td.LastChild.Data
 
 	return &Game{startTime, game, runners, duration, category, host}, nil
 }
